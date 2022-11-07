@@ -1,0 +1,53 @@
+name: "NowSecure SBOM"
+
+on:
+  workflow_dispatch:
+    branches: [ main ]
+  # can add push and pull_request here 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: "11"
+          distribution: "adopt"
+          cache: "gradle"
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+        
+      - name: Build application
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      - name: Upload application
+        uses: actions/upload-artifact@v2
+        with:
+          name: app
+          path: ./app/k9mail/build/outputs/apk/debug/k9mail-debug.apk
+          retention-days: 3
+
+scan:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Download application
+        uses: actions/download-artifact@v2
+        with:
+          name: app
+          
+      - name: NowSecure-SBOM
+        uses: nowsecure/nowsecure-sbom-action@v1
+        timeout-minutes: 60
+        with:
+          token: ${{ secrets.NS_TOKEN }}
+          app_file: k9mail-debug.apk
+          group_id: "ad2c4c53-7fbf-4f81-8170-ee9b97a1ea5c"
