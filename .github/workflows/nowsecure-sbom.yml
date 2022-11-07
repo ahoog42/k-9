@@ -26,7 +26,7 @@ jobs:
         run: ./gradlew assembleDebug --stacktrace --no-daemon
 
       - name: Upload application
-github-action-workflow-dispatch        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2
         with:
           name: app
           path: ./app/k9mail/build/outputs/apk/debug/k9mail-debug.apk
